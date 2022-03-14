@@ -1,6 +1,9 @@
 package com.meli.cbt.paymentapi.service;
 
 import com.meli.cbt.paymentapi.client.BCClient;
+import com.meli.cbt.paymentapi.model.ExchangeRateResponse;
+import com.meli.cbt.paymentapi.model.entity.ExchangeRate;
+import com.meli.cbt.paymentapi.repository.ExchangeRateRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -13,13 +16,16 @@ public class ExchangeRateService {
 
     private BCClient client;
 
-    public Mono<Boolean> validateExchangeRate(float USDAmount, float BRLAmount) {
+    private ExchangeRateRepository repository;
+
+    public Mono<ExchangeRateResponse> validateExchangeRate(float USDAmount, float BRLAmount) {
         return client.getExchangeRate()
-                .map(exchangeRate -> {
-                    log.info("Taxa de Câmbio encontrada - {}", exchangeRate.getValue());
-                    return USDAmount * exchangeRate.getValue().get(0).getCotacaoCompra() <= BRLAmount;
-                });
+            .map(e -> ExchangeRateResponse.from(e, USDAmount, BRLAmount,
+    USDAmount * e.getValue().get(0).getCotacaoCompra() <= BRLAmount))
+            .map(rateResponse -> {
+                log.info("Taxa de Câmbio encontrada - {}", rateResponse);
+                repository.save(ExchangeRate.from(rateResponse));
+                return rateResponse;
+            });
     }
 }
-
-

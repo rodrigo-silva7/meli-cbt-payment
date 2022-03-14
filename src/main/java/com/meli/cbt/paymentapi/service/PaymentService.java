@@ -4,6 +4,7 @@ import com.meli.cbt.paymentapi.exception.InvalidCurrencyException;
 import com.meli.cbt.paymentapi.exception.InvalidValueException;
 import com.meli.cbt.paymentapi.exception.PaymentNotFoundException;
 import com.meli.cbt.paymentapi.exception.SameAccountIdException;
+import com.meli.cbt.paymentapi.model.ExchangeRateResponse;
 import com.meli.cbt.paymentapi.model.dto.PaymentResponseDTO;
 import com.meli.cbt.paymentapi.model.dto.PaymentRequestDTO;
 import com.meli.cbt.paymentapi.model.dto.PaymentDetailsResponseDTO;
@@ -57,11 +58,12 @@ public class PaymentService {
                     return buildPaymentWithTransactions(payment);
 
                 return buildPaymentWithTransactions(payment)
-                    .flatMap(paymentDetailsResponseDTO -> exchangeRateService.validateExchangeRate(
-                        paymentDetailsResponseDTO.getCreditTransaction().getAmount(),
-                        paymentDetailsResponseDTO.getDebitTransaction().getAmount())
-                            //todo: refatorar aqui para conseguir persistir cotação utilizada
-                    .flatMap(result -> result ? processPayment(payment) : delayPayment(payment)));
+                    .flatMap(paymentResponse -> exchangeRateService.validateExchangeRate(
+                        paymentResponse.getCreditTransaction().getAmount(),
+                        paymentResponse.getDebitTransaction().getAmount())
+                    .flatMap(rateResponse -> rateResponse.isAcceptableRate() ?
+                            processPayment(payment, rateResponse)
+                            : delayPayment(payment)));
                 }
             );
     }
@@ -87,8 +89,11 @@ public class PaymentService {
         return Mono.just(payment);
     }
 
-    private Mono<PaymentResponseDTO> processPayment(Payment payment) {
+    private Mono<PaymentResponseDTO> processPayment(Payment payment, ExchangeRateResponse rateResponse) {
+        payment.setUsdRate(rateResponse.getRate());
+        payment.setRateRecoveredDate(rateResponse.getDate());
         payment.setStatus(PaymentStatus.PROCESSED);
+
         return repository.save(payment)
             .map(PaymentResponseDTO::from);
     }
