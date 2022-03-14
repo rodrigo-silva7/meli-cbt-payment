@@ -72,21 +72,6 @@ public class PaymentService {
             );
     }
 
-    /*public Flux<PaymentDetailsResponseDTO> finishProcessedPayments() {
-        List<String> trList = new ArrayList<>();
-        return repository.findAllByStatusProcessed()
-            .flatMapSequential(payment -> {
-                trList.add(payment.getDebitTransactionId());
-                trList.add(payment.getCreditTransactionId());
-                return Mono.just(payment);
-            })
-            .collectList()
-            .flatMapMany(this::finishAllPayments)
-            .collectList()
-            .flatMap(list -> Mono.zip(Mono.just(list),transactionService.getTransactions(trList).collectList()))
-            .flatMapMany(PaymentService::buildFinishedPaymentsWithTransactions);
-    }*/
-
     public Mono<List<ReportPaymentDTO>> finishProcessedPayments() {
         return repository.findAllByStatusProcessed()
             .switchIfEmpty(Mono.error(new EntityNotFoundException("Não há pagamentos para finalizar.")))
@@ -115,21 +100,6 @@ public class PaymentService {
                     });
             });
     }
-
-    /*private static Publisher<? extends PaymentDetailsResponseDTO> buildFinishedPaymentsWithTransactions(Tuple2<List<Payment>,List<Transaction>> tuple) {
-        List<Payment> payments = tuple.getT1();
-        List<Transaction> transactions = tuple.getT2();
-        List<PaymentDetailsResponseDTO> response = new ArrayList<>();
-
-        for (Payment p : payments) {
-            Transaction debit = transactions.stream().filter(t -> t.getTransactionId().equals(p.getDebitTransactionId())).findFirst().get();
-            Transaction credit = transactions.stream().filter(t -> t.getTransactionId().equals(p.getCreditTransactionId())).findFirst().get();
-            response.add(PaymentDetailsResponseDTO.from(p, List.of(debit, credit)));
-        }
-
-        log.info("Pagamentos finalizados - {}", response);
-        return Flux.fromIterable(response);
-    }*/
 
     private Mono<PaymentDetailsResponseDTO> buildPaymentWithTransactions(Payment payment) {
         return transactionService.getTransactions(List.of(payment.getDebitTransactionId(), payment.getCreditTransactionId()))
@@ -166,12 +136,6 @@ public class PaymentService {
         return repository.save(payment)
             .map(PaymentResponseDTO::from);
     }
-
-    /*private Mono<PaymentResponseDTO> finishPayment(Payment payment) {
-        payment.setStatus(PaymentStatus.FINAL);
-        return repository.save(payment)
-            .map(PaymentResponseDTO::from);
-    }*/
 
     private Flux<Payment> finishAllPayments(List<Payment> payments) {
         payments.forEach(p -> p.setStatus(PaymentStatus.FINAL));
