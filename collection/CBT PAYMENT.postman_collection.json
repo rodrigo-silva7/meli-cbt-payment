@@ -1,0 +1,118 @@
+{
+	"info": {
+		"_postman_id": "ac091264-cf7a-4d0c-8498-66bcb8abd007",
+		"name": "CBT PAYMENT",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Criar Pagamento",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"debitTransaction\": {\n       \"type\": \"DEBIT\", \n       \"amount\": 10.0,\n       \"accountId\": 444023,\n       \"currency\": \"BRL\" \n    },\n    \"creditTransaction\": {\n        \"type\": \"CREDIT\",\n        \"amount\": 2.0,\n        \"accountId\": 444021,\n        \"currency\": \"USD\"\n    }\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/cbt/v1/payment",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"cbt",
+						"v1",
+						"payment"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Buscar Pagamento",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/cbt/v1/payment/:paymentId",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"cbt",
+						"v1",
+						"payment",
+						":paymentId"
+					],
+					"variable": [
+						{
+							"key": "paymentId",
+							"value": "1"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Capturar Pagamento",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/cbt/v1/payment/:paymentId/capture",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"cbt",
+						"v1",
+						"payment",
+						":paymentId",
+						"capture"
+					],
+					"variable": [
+						{
+							"key": "paymentId",
+							"value": "5"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Finalizar pagamentos",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/cbt/v1/payment/process",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"cbt",
+						"v1",
+						"payment",
+						"process"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
