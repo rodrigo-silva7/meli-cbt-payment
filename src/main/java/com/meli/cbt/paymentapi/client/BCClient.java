@@ -12,6 +12,7 @@ import reactor.core.publisher.Mono;
 import java.net.URI;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 @Slf4j
@@ -40,11 +41,13 @@ public class BCClient extends BaseClient {
     }
 
     private String findLastValidDay() {
-        LocalDate presentDay = LocalDate.now();
+        LocalDateTime presentDay = LocalDateTime.now();
         if(presentDay.getDayOfWeek().equals(DayOfWeek.SATURDAY))
             return LocalDate.now().minusDays(1).format(getDateFormatter());
         if(presentDay.getDayOfWeek().equals(DayOfWeek.SUNDAY))
             return LocalDate.now().minusDays(2).format(getDateFormatter());
+        if(presentDay.getHour() <= 15)
+            return LocalDate.now().minusDays(1).format(getDateFormatter());
         return presentDay.format(getDateFormatter());
     }
 

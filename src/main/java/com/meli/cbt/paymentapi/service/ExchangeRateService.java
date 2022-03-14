@@ -22,10 +22,10 @@ public class ExchangeRateService {
         return client.getExchangeRate()
             .map(e -> ExchangeRateResponse.from(e, USDAmount, BRLAmount,
     USDAmount * e.getValue().get(0).getCotacaoCompra() <= BRLAmount))
-            .map(rateResponse -> {
+            .flatMap(rateResponse -> {
                 log.info("Taxa de Câmbio encontrada - {}", rateResponse);
-                repository.save(ExchangeRate.from(rateResponse));
-                return rateResponse;
+                return repository.save(ExchangeRate.from(rateResponse))
+                        .flatMap(__ -> Mono.just(rateResponse));
             });
     }
 }

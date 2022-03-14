@@ -5,19 +5,23 @@ import com.meli.cbt.paymentapi.exception.InvalidValueException;
 import com.meli.cbt.paymentapi.exception.PaymentNotFoundException;
 import com.meli.cbt.paymentapi.exception.SameAccountIdException;
 import com.meli.cbt.paymentapi.model.ExchangeRateResponse;
-import com.meli.cbt.paymentapi.model.dto.PaymentResponseDTO;
-import com.meli.cbt.paymentapi.model.dto.PaymentRequestDTO;
 import com.meli.cbt.paymentapi.model.dto.PaymentDetailsResponseDTO;
+import com.meli.cbt.paymentapi.model.dto.PaymentRequestDTO;
+import com.meli.cbt.paymentapi.model.dto.PaymentResponseDTO;
+import com.meli.cbt.paymentapi.model.dto.ReportPaymentDTO;
 import com.meli.cbt.paymentapi.model.entity.Payment;
+import com.meli.cbt.paymentapi.model.entity.Transaction;
 import com.meli.cbt.paymentapi.model.enums.Currency;
 import com.meli.cbt.paymentapi.model.enums.PaymentStatus;
 import com.meli.cbt.paymentapi.repository.PaymentRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import javax.persistence.EntityNotFoundException;
+import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
@@ -68,6 +72,65 @@ public class PaymentService {
             );
     }
 
+    /*public Flux<PaymentDetailsResponseDTO> finishProcessedPayments() {
+        List<String> trList = new ArrayList<>();
+        return repository.findAllByStatusProcessed()
+            .flatMapSequential(payment -> {
+                trList.add(payment.getDebitTransactionId());
+                trList.add(payment.getCreditTransactionId());
+                return Mono.just(payment);
+            })
+            .collectList()
+            .flatMapMany(this::finishAllPayments)
+            .collectList()
+            .flatMap(list -> Mono.zip(Mono.just(list),transactionService.getTransactions(trList).collectList()))
+            .flatMapMany(PaymentService::buildFinishedPaymentsWithTransactions);
+    }*/
+
+    public Mono<List<ReportPaymentDTO>> finishProcessedPayments() {
+        return repository.findAllByStatusProcessed()
+            .switchIfEmpty(Mono.error(new EntityNotFoundException("Não há pagamentos para finalizar.")))
+            .collectList()
+            .flatMap(payments -> {
+                List<String> transactionIdList = new ArrayList<>();
+                payments.forEach(p -> {
+                    transactionIdList.add(p.getCreditTransactionId());
+                    transactionIdList.add(p.getDebitTransactionId());
+                });
+                return Mono.zip(transactionService.getTransactions(transactionIdList).collectList(), Mono.just(payments))
+                    .flatMap(tuple -> {
+                        List<Payment> paymentsList = tuple.getT2();
+                        List<Transaction> transactions = tuple.getT1();
+                        List<ReportPaymentDTO> report = new ArrayList<>();
+
+                        for (Payment p : paymentsList)
+                            report.add(ReportPaymentDTO.from(p, transactions));
+
+                        return finishAllPayments(payments)
+                            .collectList()
+                            .flatMap(response -> {
+                                log.info("Pagamentos finalizados - {}", response);
+                                return Mono.just(report);
+                            });
+                    });
+            });
+    }
+
+    /*private static Publisher<? extends PaymentDetailsResponseDTO> buildFinishedPaymentsWithTransactions(Tuple2<List<Payment>,List<Transaction>> tuple) {
+        List<Payment> payments = tuple.getT1();
+        List<Transaction> transactions = tuple.getT2();
+        List<PaymentDetailsResponseDTO> response = new ArrayList<>();
+
+        for (Payment p : payments) {
+            Transaction debit = transactions.stream().filter(t -> t.getTransactionId().equals(p.getDebitTransactionId())).findFirst().get();
+            Transaction credit = transactions.stream().filter(t -> t.getTransactionId().equals(p.getCreditTransactionId())).findFirst().get();
+            response.add(PaymentDetailsResponseDTO.from(p, List.of(debit, credit)));
+        }
+
+        log.info("Pagamentos finalizados - {}", response);
+        return Flux.fromIterable(response);
+    }*/
+
     private Mono<PaymentDetailsResponseDTO> buildPaymentWithTransactions(Payment payment) {
         return transactionService.getTransactions(List.of(payment.getDebitTransactionId(), payment.getCreditTransactionId()))
             .collectList()
@@ -104,9 +167,14 @@ public class PaymentService {
             .map(PaymentResponseDTO::from);
     }
 
-    private Mono<PaymentResponseDTO> finishPayment(Payment payment) {
+    /*private Mono<PaymentResponseDTO> finishPayment(Payment payment) {
         payment.setStatus(PaymentStatus.FINAL);
         return repository.save(payment)
             .map(PaymentResponseDTO::from);
+    }*/
+
+    private Flux<Payment> finishAllPayments(List<Payment> payments) {
+        payments.forEach(p -> p.setStatus(PaymentStatus.FINAL));
+        return repository.saveAll(Flux.fromIterable(payments));
     }
 }

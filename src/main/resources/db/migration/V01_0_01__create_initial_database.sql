@@ -14,6 +14,8 @@ CREATE TABLE IF NOT EXISTS tb_payment (
     credit_transaction_id   VARCHAR(36) NOT NULL,
     amount_in_usd           FLOAT       NOT NULL,
     status                  VARCHAR(36) NOT NULL,
+    usd_rate                FLOAT       DEFAULT NULL,
+    rate_recovered_date     VARCHAR(48) DEFAULT NULL,
     created_at              TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_at              TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL
 );
@@ -21,7 +23,7 @@ CREATE TABLE IF NOT EXISTS tb_payment (
 CREATE TABLE IF NOT EXISTS tb_exchange_rate (
     id          BIGINT PRIMARY KEY AUTO_INCREMENT,
     rate        FLOAT  NOT NULL,
-    consultedAt TIMESTAMP NOT NULL
+    consulted_at TIMESTAMP NOT NULL
 );
 
 CREATE INDEX idx_transaction_id ON tb_transaction(transaction_id);
