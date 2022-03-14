@@ -1,0 +1,27 @@
+
+
+
+spring:
+  webflux:
+    base-path: /cbt
+    static-path-pattern: /**
+  r2dbc:
+    url: r2dbc:pool:mariadb://localhost:3306/cbt_payment
+    username: meli
+    password: melipass
+    properties:
+      host: localhost
+      port: 3306
+      database: cbt_payment
+      username: meli
+      password: melipass
+
+  flyway:
+    url: jdbc:mariadb://localhost:3306/cbt_payment
+    user: root
+    password: rootpass
+    baseline-on-migrate: true
+
+
+banco-central:
+  url: "https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/"
