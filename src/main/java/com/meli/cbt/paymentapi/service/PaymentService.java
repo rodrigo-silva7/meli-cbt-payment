@@ -101,13 +101,7 @@ public class PaymentService {
             });
     }
 
-    private Mono<PaymentDetailsResponseDTO> buildPaymentWithTransactions(Payment payment) {
-        return transactionService.getTransactions(List.of(payment.getDebitTransactionId(), payment.getCreditTransactionId()))
-            .collectList()
-            .flatMap(transactions -> Mono.just(PaymentDetailsResponseDTO.from(payment,transactions)));
-    }
-
-    private Mono<PaymentRequestDTO> validatePayment(PaymentRequestDTO payment) {
+    public Mono<PaymentRequestDTO> validatePayment(PaymentRequestDTO payment) {
         if(payment.getCreditTransaction().getAccountId().equals(payment.getDebitTransaction().getAccountId()))
             throw new SameAccountIdException();
 
@@ -120,6 +114,12 @@ public class PaymentService {
             throw new InvalidValueException();
 
         return Mono.just(payment);
+    }
+
+    private Mono<PaymentDetailsResponseDTO> buildPaymentWithTransactions(Payment payment) {
+        return transactionService.getTransactions(List.of(payment.getDebitTransactionId(), payment.getCreditTransactionId()))
+                .collectList()
+                .flatMap(transactions -> Mono.just(PaymentDetailsResponseDTO.from(payment,transactions)));
     }
 
     private Mono<PaymentResponseDTO> processPayment(Payment payment, ExchangeRateResponse rateResponse) {
