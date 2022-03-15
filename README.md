@@ -16,7 +16,7 @@ A collection para teste dos recursos está presente na pasta **collection/**
 
 
 ## Diagrama de Estados de um Pagamento
-![Screenshot_20220314_201038](https://user-images.githubusercontent.com/44138536/158275481-e7b99b15-7727-451d-90a3-5b688db9db4b.png)
+![Screenshot_20220314_223741](https://user-images.githubusercontent.com/44138536/158288746-8583b27b-e386-4338-a5a3-87945487cb48.png)
 
 ## coverage
 ![Screenshot_20220314_222047](https://user-images.githubusercontent.com/44138536/158287526-057f4246-f049-4e3f-8197-9f538e2415a2.png)
