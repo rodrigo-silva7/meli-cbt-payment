@@ -2,7 +2,7 @@
 
 API de criação e processamento de pagamentos.
 
-coverage:
+## coverage
 ![Screenshot_20220314_222047](https://user-images.githubusercontent.com/44138536/158287526-057f4246-f049-4e3f-8197-9f538e2415a2.png)
 
 ## Instruções
