@@ -21,6 +21,8 @@ public class PaymentDetailsResponseDTO extends PaymentResponseDTO {
     private Transaction debitTransaction;
     private Transaction creditTransaction;
     private float amountInUsd;
+    private float usdRate;
+    private String rateRecoveredDate;
     private LocalDateTime updatedAt;
 
     public static PaymentDetailsResponseDTO from(Payment payment, List<Transaction> transactions) {
@@ -30,6 +32,8 @@ public class PaymentDetailsResponseDTO extends PaymentResponseDTO {
         return PaymentDetailsResponseDTO.builder()
             .id(payment.getId())
             .status(payment.getStatus())
+            .usdRate(payment.getUsdRate())
+            .rateRecoveredDate(payment.getRateRecoveredDate())
             .createdAt(payment.getCreatedAt())
             .debitTransaction(debitTransaction.orElse(null))
             .creditTransaction(creditTransaction.orElse(null))

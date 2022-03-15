@@ -4,6 +4,7 @@ import com.meli.cbt.paymentapi.constants.Constants;
 import com.meli.cbt.paymentapi.model.dto.PaymentDetailsResponseDTO;
 import com.meli.cbt.paymentapi.model.dto.PaymentRequestDTO;
 import com.meli.cbt.paymentapi.model.dto.PaymentResponseDTO;
+import com.meli.cbt.paymentapi.model.dto.ReportPaymentDTO;
 import com.meli.cbt.paymentapi.model.enums.PaymentStatus;
 import com.meli.cbt.paymentapi.service.PaymentService;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
 import javax.validation.Valid;
+import java.util.List;
 
 @Slf4j
 @AllArgsConstructor
@@ -54,5 +56,12 @@ public class PaymentController {
                 } else
                     log.info("Pagamento processado com sucesso - response: {}", paymentResponse);
             });
+    }
+
+    @ResponseStatus(HttpStatus.OK)
+    @PostMapping(path = "/process", produces = MediaType.APPLICATION_JSON_VALUE)
+    public Mono<List<ReportPaymentDTO>> finishProcessedPayments(ServerHttpResponse response) {
+        log.info("Iniciando a recuperação de pagamentos processados");
+        return service.finishProcessedPayments();
     }
 }

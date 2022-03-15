@@ -40,6 +40,10 @@ public class Payment {
     @Enumerated(EnumType.STRING)
     private PaymentStatus status;
 
+    private float usdRate;
+
+    private String rateRecoveredDate;
+
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
@@ -65,6 +69,8 @@ public class Payment {
                 .append("creditTransactionId", creditTransactionId)
                 .append("amountInUsd", amountInUsd)
                 .append("status", status)
+                .append("usdRate", usdRate)
+                .append("rateRecoveredDate", rateRecoveredDate)
                 .append("createdAt", createdAt)
                 .append("updatedAt", updatedAt)
                 .toString();
